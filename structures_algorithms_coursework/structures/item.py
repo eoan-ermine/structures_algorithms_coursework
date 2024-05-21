@@ -2,20 +2,20 @@
 
 from datetime import date, datetime
 
-from pydantic import BaseModel, NonNegativeInt, PositiveInt, field_validator
+from pydantic import BaseModel, Field, field_validator
 from pydantic_core.core_schema import FieldValidationInfo
 
 
 class Item(BaseModel):
     """Товар"""
 
-    ident: str
+    ident: str = Field(str, min_length=1)
     order_date: date
-    name: str
-    category_name: str
-    sales_count: NonNegativeInt
-    price: PositiveInt
-    total_cost: NonNegativeInt
+    name: str = Field(str, min_length=1)
+    category_name: str = Field(str, min_length=1)
+    sales_count: int = Field(int, gt=0)
+    price: int = Field(int, gt=0)
+    total_cost: int = Field(int, gt=0)
 
     @field_validator("order_date", mode="after")
     @classmethod
@@ -33,7 +33,7 @@ class Item(BaseModel):
 
     @field_validator("total_cost", mode="after")
     @classmethod
-    def parse_total_cost(cls, value: NonNegativeInt, info: FieldValidationInfo):
+    def parse_total_cost(cls, value: int, info: FieldValidationInfo):
         """Валидирует, что сумма произведений количества продаж на цену равняется общей выручке"""
         if info.data["sales_count"] * info.data["price"] != value:
             raise ValueError("sales_count * price != total_cost")
